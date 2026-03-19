@@ -1,0 +1,14 @@
+generator client {
+  provider               = "prisma-client"
+  output                 = "./../generated"
+  moduleFormat           = "cjs"
+  previewFeatures        = ["relationJoins", "strictUndefinedChecks"]
+  generatedFileExtension = "ts"
+  importFileExtension    = ""
+  engineType             = "client"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+

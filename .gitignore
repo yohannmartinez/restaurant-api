@@ -2,6 +2,7 @@
 /dist
 /node_modules
 /build
+/src/app/infrastructure/prisma/generated/
 
 # Logs
 logs
