@@ -14,6 +14,8 @@ import { USER_REPOSITORY } from 'src/app/domain/user/repository/user.repository'
 import { AUTH_REPOSITORY } from 'src/app/domain/auth/repository/auth.repository';
 import { AUTH_TOKEN_SERVICE } from 'src/app/domain/auth/service/authToken.service';
 import { JwtAuthTokenService } from './services/jwtAuthToken.service';
+import { JwtStrategy } from './providers/jwt/jwt.strategy';
+import { GetCurrentUserUseCase } from 'src/app/useCase/auth/currentUser/getCurrentUser.useCase';
 
 @Module({
     imports: [
@@ -24,7 +26,9 @@ import { JwtAuthTokenService } from './services/jwtAuthToken.service';
     controllers: [AuthController, GoogleAuthController],
     providers: [
         GoogleStrategy,
+        JwtStrategy,
         LoginWithOAuthProviderUseCase,
+        GetCurrentUserUseCase,
         RefreshSessionUseCase,
         LogoutUseCase,
         PrismaUserRepository,

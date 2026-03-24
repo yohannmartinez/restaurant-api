@@ -1,0 +1,19 @@
+import { createParamDecorator, ExecutionContext } from '@nestjs/common';
+import { AuthenticatedUser } from 'src/app/domain/auth/model/authenticatedUser.model';
+
+export const CurrentUser = createParamDecorator(
+    (
+        data: keyof AuthenticatedUser | undefined,
+        ctx: ExecutionContext,
+    ) => {
+        console.log('ExecutionContext:', ctx);
+        const request = ctx.switchToHttp().getRequest<{ user?: AuthenticatedUser }>();
+        const user = request.user;
+
+        if (!user) {
+            return undefined;
+        }
+
+        return data ? user[data] : user;
+    },
+);

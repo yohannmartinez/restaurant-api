@@ -1,14 +1,17 @@
 import {
     Controller,
+    Get,
     Post,
     Req,
     Res,
     UnauthorizedException,
+    UseGuards,
 } from '@nestjs/common';
 import { type Request, type Response } from 'express';
 
 import { RefreshSessionUseCase } from 'src/app/useCase/auth/session/refresh.useCase';
 import { LogoutUseCase } from 'src/app/useCase/auth/session/logout.useCase';
+import { GetCurrentUserUseCase } from 'src/app/useCase/auth/currentUser/getCurrentUser.useCase';
 import {
     ACCESS_TOKEN_COOKIE_NAME,
     REFRESH_TOKEN_COOKIE_NAME,
@@ -16,13 +19,24 @@ import {
     buildClearCookieOptions,
     buildRefreshTokenCookieOptions,
 } from './http/authCookie.helper';
+import { JwtAuthGuard } from './providers/jwt/jwtAuth.guard';
+import { CurrentUser } from './decorators/currentUser.decorator';
+import { type AuthenticatedUser } from 'src/app/domain/auth/model/authenticatedUser.model';
 
 @Controller('auth')
 export class AuthController {
     constructor(
         private readonly refreshSessionUseCase: RefreshSessionUseCase,
         private readonly logoutUseCase: LogoutUseCase,
+        private readonly getCurrentUserUseCase: GetCurrentUserUseCase,
     ) { }
+
+    @Get('me')
+    @UseGuards(JwtAuthGuard)
+    getMe(@CurrentUser() user: AuthenticatedUser): AuthenticatedUser {
+        console.log('Authenticated user:', user);
+        return this.getCurrentUserUseCase.execute(user);
+    }
 
     @Post('refresh')
     async refresh(@Req() req: Request, @Res() res: Response): Promise<void> {
