@@ -34,13 +34,19 @@ export class AuthController {
     @Get('me')
     @UseGuards(JwtAuthGuard)
     getMe(@CurrentUser() user: AuthenticatedUser): AuthenticatedUser {
-        console.log('Authenticated user:', user);
         return this.getCurrentUserUseCase.execute(user);
     }
 
     @Post('refresh')
     async refresh(@Req() req: Request, @Res() res: Response): Promise<void> {
-        const refreshToken = req.cookies[REFRESH_TOKEN_COOKIE_NAME];
+        const authorization = req.headers.authorization;
+        const bearerToken =
+            authorization?.startsWith('Bearer ')
+                ? authorization.slice(7)
+                : undefined;
+
+        const refreshToken =
+            bearerToken ?? req.cookies?.[REFRESH_TOKEN_COOKIE_NAME];
 
         if (!refreshToken) {
             throw new UnauthorizedException('Missing refresh token');
@@ -60,7 +66,10 @@ export class AuthController {
             buildRefreshTokenCookieOptions(),
         );
 
-        res.status(200).json({ success: true });
+        res.status(200).json({
+            access_token: result.accessToken,
+            refresh_token: result.refreshToken,
+        });
     }
 
     @Post('logout')
