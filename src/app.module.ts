@@ -1,13 +1,22 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
 import { GracefulShutdownModule } from 'nestjs-graceful-shutdown';
+import { ConfigModule } from '@nestjs/config';
+import { PrismaModule } from './common/prisma/prisma.module';
+import { UsersModule } from './modules/users/users.module';
+import { AccountsModule } from './modules/accounts/accounts.module';
+import { AuthModule } from './modules/auth/auth.module';
 
 @Module({
   imports: [
+
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
     GracefulShutdownModule.forRoot(),
+    PrismaModule,
+    UsersModule,
+    AccountsModule,
+    AuthModule,
   ],
-  controllers: [AppController],
-  exports: [AppModule]
 })
-export class AppModule {
-}
+export class AppModule { }
