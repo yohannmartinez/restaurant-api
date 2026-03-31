@@ -1,25 +1,35 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma, User } from 'src/common/prisma/generated/client';
+import { type PrismaClientOrTransaction } from 'src/common/prisma/prisma.types';
 import { PrismaService } from 'src/common/prisma/prisma.service';
 
 @Injectable()
 export class UsersRepository {
     constructor(private readonly prisma: PrismaService) { }
 
-    async findById(id: string): Promise<User | null> {
-        return this.prisma.user.findUnique({
+    async findById(
+        id: string,
+        client: PrismaClientOrTransaction = this.prisma,
+    ): Promise<User | null> {
+        return client.user.findUnique({
             where: { id },
         });
     }
 
-    async findByEmail(email: string): Promise<User | null> {
-        return this.prisma.user.findUnique({
+    async findByEmail(
+        email: string,
+        client: PrismaClientOrTransaction = this.prisma,
+    ): Promise<User | null> {
+        return client.user.findUnique({
             where: { email },
         });
     }
 
-    async create(data: Prisma.UserCreateInput): Promise<User> {
-        return this.prisma.user.create({
+    async create(
+        data: Prisma.UserCreateInput,
+        client: PrismaClientOrTransaction = this.prisma,
+    ): Promise<User> {
+        return client.user.create({
             data,
         });
     }
@@ -27,8 +37,9 @@ export class UsersRepository {
     async updateHashedRefreshToken(
         userId: string,
         hashedRefreshToken: string | null,
+        client: PrismaClientOrTransaction = this.prisma,
     ): Promise<void> {
-        await this.prisma.user.update({
+        await client.user.update({
             where: { id: userId },
             data: {
                 hashedRefreshToken,

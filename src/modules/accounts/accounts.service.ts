@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import {
     Account,
-    AccountProviders,
+    AccountProvider,
     User,
 } from 'src/common/prisma/generated/client';
 import { AccountsRepository } from './accounts.repository';
@@ -11,7 +11,7 @@ export class AccountsService {
     constructor(private readonly accountsRepository: AccountsRepository) { }
 
     async findUserByProviderAccount(
-        provider: AccountProviders,
+        provider: AccountProvider,
         providerAccountId: string,
     ): Promise<User | null> {
         return this.accountsRepository.findUserByProviderAndProviderAccountId(
@@ -22,14 +22,14 @@ export class AccountsService {
 
     async findByUserIdAndProvider(params: {
         userId: string;
-        provider: AccountProviders;
+        provider: AccountProvider;
     }): Promise<Account | null> {
         return this.accountsRepository.findByUserIdAndProvider(params);
     }
 
     async linkProviderToUser(params: {
         userId: string;
-        provider: AccountProviders;
+        provider: AccountProvider;
         providerAccountId: string;
     }): Promise<Account> {
         return this.accountsRepository.create(params);

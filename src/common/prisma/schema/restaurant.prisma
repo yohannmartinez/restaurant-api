@@ -1,0 +1,23 @@
+enum RestaurantStatus {
+  DRAFT
+  ACTIVE
+  SUSPENDED
+  ARCHIVED
+}
+
+model Restaurant {
+  id          String                 @id @default(uuid())
+  name        String
+  slug        String
+  description String?
+  address     String
+  status      RestaurantStatus       @default(DRAFT)
+
+  createdAt   DateTime               @default(now())
+  updatedAt   DateTime               @updatedAt
+
+  memberships RestaurantMembership[]
+
+  @@index([slug])
+  @@index([status])
+}

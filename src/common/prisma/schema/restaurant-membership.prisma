@@ -1,0 +1,31 @@
+enum RestaurantRole {
+  OWNER
+  EDITOR
+}
+
+enum MembershipStatus {
+  INVITED
+  ACTIVE
+  REVOKED
+}
+
+model RestaurantMembership {
+  id              String            @id @default(uuid())
+  userId          String
+  restaurantId    String
+  role            RestaurantRole
+  status          MembershipStatus  @default(INVITED)
+  invitedByUserId String?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  user            User              @relation("RestaurantMembershipUser", fields: [userId], references: [id], onDelete: Cascade)
+  invitedBy       User?             @relation("RestaurantMembershipInviter", fields: [invitedByUserId], references: [id], onDelete: SetNull)
+  restaurant      Restaurant        @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, restaurantId])
+  @@index([restaurantId])
+  @@index([userId])
+  @@index([invitedByUserId])
+  @@index([status])
+}

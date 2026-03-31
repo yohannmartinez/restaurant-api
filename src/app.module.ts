@@ -5,6 +5,8 @@ import { PrismaModule } from './common/prisma/prisma.module';
 import { UsersModule } from './modules/users/users.module';
 import { AccountsModule } from './modules/accounts/accounts.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { RestaurantMembershipsModule } from './modules/restaurant-memberships/restaurant-memberships.module';
+import { RestaurantsModule } from './modules/restaurants/restaurants.module';
 
 @Module({
   imports: [
@@ -17,6 +19,8 @@ import { AuthModule } from './modules/auth/auth.module';
     UsersModule,
     AccountsModule,
     AuthModule,
+    RestaurantMembershipsModule,
+    RestaurantsModule,
   ],
 })
 export class AppModule { }

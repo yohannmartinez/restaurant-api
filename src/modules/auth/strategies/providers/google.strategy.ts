@@ -1,6 +1,6 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
-import { AccountProviders } from 'src/common/prisma/generated/client';
+import { AccountProvider } from 'src/common/prisma/generated/client';
 import { Profile, Strategy, VerifyCallback } from 'passport-google-oauth20';
 import { type OAuthUser } from '../../auth.types';
 
@@ -39,7 +39,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
             firstName,
             lastName,
             picture,
-            provider: AccountProviders.GOOGLE,
+            provider: AccountProvider.GOOGLE,
             providerAccountId,
         };
 

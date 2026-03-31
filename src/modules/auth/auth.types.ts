@@ -1,4 +1,4 @@
-import { AccountProviders } from 'src/common/prisma/generated/client';
+import { AccountProvider } from 'src/common/prisma/generated/client';
 
 export type AuthUser = {
     id: string;
@@ -14,7 +14,7 @@ export type OAuthUser = {
     firstName?: string;
     lastName?: string;
     picture?: string;
-    provider: AccountProviders;
+    provider: AccountProvider;
     providerAccountId: string;
 };
 

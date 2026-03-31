@@ -1,12 +1,14 @@
 model User {
-  id                 String        @id @default(cuid())
-  email              String        @unique
-  firstName          String?
-  lastName           String?
-  picture            String?
-  hashedRefreshToken String?
-  createdAt          DateTime      @default(now())
-  updatedAt          DateTime      @updatedAt
+  id                      String                   @id @default(cuid())
+  email                   String                   @unique
+  firstName               String?
+  lastName                String?
+  picture                 String?
+  hashedRefreshToken      String?
+  createdAt               DateTime                 @default(now())
+  updatedAt               DateTime                 @updatedAt
 
-  accounts       Account[]
+  accounts                Account[]
+  restaurantMemberships   RestaurantMembership[]   @relation("RestaurantMembershipUser")
+  restaurantInvitationsSent RestaurantMembership[] @relation("RestaurantMembershipInviter")
 }
