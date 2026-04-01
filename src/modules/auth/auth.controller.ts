@@ -2,10 +2,11 @@ import {
     Controller,
     Get,
     Post,
+    Req,
     Res,
     UseGuards,
 } from '@nestjs/common';
-import { type Response } from 'express';
+import { type Request, type Response } from 'express';
 import { AuthService } from './auth.service';
 import {
     ACCESS_TOKEN_COOKIE_NAME,
@@ -29,6 +30,7 @@ import {
     type OAuthUser,
     type RefreshAuthUser,
 } from './auth.types';
+import { buildFrontendRedirectUrl } from './helpers/auth-redirect.utils';
 
 @Controller('auth')
 export class AuthController {
@@ -43,13 +45,16 @@ export class AuthController {
     async googleCallback(
         @CurrentUser(new ZodValidationPipe(oAuthUserSchema))
         oauthUser: OAuthUser,
+        @Req() req: Request,
         @Res() res: Response,
     ): Promise<void> {
         const result = await this.authService.loginWithOAuth(oauthUser);
 
         this.setAuthCookies(res, result.accessToken, result.refreshToken);
 
-        return res.redirect(`${process.env.FRONTEND_URL}/auth/success`);
+        return res.redirect(
+            buildFrontendRedirectUrl(process.env.FRONTEND_URL!, req.query.state),
+        );
     }
 
     @Get('me')
