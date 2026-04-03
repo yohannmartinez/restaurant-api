@@ -62,8 +62,12 @@ export class AuthController {
     async me(
         @CurrentUser(new ZodValidationPipe(authUserSchema))
         user: AuthUser,
-    ): Promise<User> {
-        return this.authService.getMe(user.id);
+    ): Promise<Omit<User, 'hashedRefreshToken'>> {
+        const authenticatedUser = await this.authService.getMe(user.id);
+
+        const { hashedRefreshToken, ...safeUser } = authenticatedUser;
+
+        return safeUser;
     }
 
     @Post('refresh')

@@ -1,6 +1,7 @@
 import {
     Body,
     Controller,
+    Get,
     Post,
     UseGuards,
 } from '@nestjs/common';
@@ -12,12 +13,22 @@ import { createRestaurantSchema } from './restaurants.schemas';
 import {
     type CreateRestaurantInput,
     type CreateRestaurantResult,
+    type GetUserRestaurantsResult,
 } from './restaurants.types';
 import { RestaurantsService } from './restaurants.service';
 
 @Controller('restaurant')
 export class RestaurantsController {
     constructor(private readonly restaurantsService: RestaurantsService) { }
+
+    @Get('me')
+    @UseGuards(JwtAuthGuard)
+    async getMyRestaurants(
+        @CurrentUserId(new ZodValidationPipe(authUserIdSchema))
+        userId: string,
+    ): Promise<GetUserRestaurantsResult> {
+        return this.restaurantsService.getUserRestaurants(userId);
+    }
 
     @Post('create')
     @UseGuards(JwtAuthGuard)

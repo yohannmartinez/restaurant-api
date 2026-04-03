@@ -12,3 +12,9 @@ export type CreateRestaurantInput = {
 export type CreateRestaurantResult = Restaurant & {
     memberships: RestaurantMembership[];
 };
+
+export type GetUserRestaurantsResult = Array<
+    Restaurant & {
+        memberships: RestaurantMembership[];
+    }
+>;
