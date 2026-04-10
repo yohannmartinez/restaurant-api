@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import {
+    ConflictException,
+    Injectable,
+    NotFoundException,
+} from '@nestjs/common';
 import {
     MembershipStatus,
     RestaurantMembership,
@@ -29,5 +33,53 @@ export class RestaurantMembershipsService {
             },
             client,
         );
+    }
+
+    async acceptInvitation(params: {
+        userId: string;
+        restaurantId: string;
+    }): Promise<RestaurantMembership> {
+        await this.ensureInvitedMembership(params, 'accepted');
+
+        return this.restaurantMembershipsRepository.updateStatus({
+            ...params,
+            status: MembershipStatus.ACTIVE,
+        });
+    }
+
+    async declineInvitation(params: {
+        userId: string;
+        restaurantId: string;
+    }): Promise<RestaurantMembership> {
+        await this.ensureInvitedMembership(params, 'declined');
+
+        return this.restaurantMembershipsRepository.deleteByUserIdAndRestaurantId(
+            params,
+        );
+    }
+
+    private async ensureInvitedMembership(
+        params: {
+            userId: string;
+            restaurantId: string;
+        },
+        action: 'accepted' | 'declined',
+    ): Promise<RestaurantMembership> {
+        const membership =
+            await this.restaurantMembershipsRepository.findByUserIdAndRestaurantId(
+                params,
+            );
+
+        if (!membership) {
+            throw new NotFoundException('Restaurant invitation not found');
+        }
+
+        if (membership.status !== MembershipStatus.INVITED) {
+            throw new ConflictException(
+                `Restaurant invitation cannot be ${action} from status ${membership.status}`,
+            );
+        }
+
+        return membership;
     }
 }

@@ -36,11 +36,7 @@ export class RestaurantsRepository {
                 },
             },
             include: {
-                memberships: {
-                    where: {
-                        userId,
-                    },
-                },
+                memberships: true,
             },
             orderBy: {
                 createdAt: 'desc',
