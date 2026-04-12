@@ -5,6 +5,7 @@ import {
     RestaurantRole,
 } from 'src/common/prisma/generated/client';
 import { type PrismaClientOrTransaction } from 'src/common/prisma/prisma.types';
+import { UsersService } from '../users/users.service';
 import { RestaurantMembershipsRepository } from './restaurant-memberships.repository';
 import { type RestaurantMemberProfile } from './restaurant-memberships.types';
 
@@ -12,6 +13,7 @@ import { type RestaurantMemberProfile } from './restaurant-memberships.types';
 export class RestaurantMembershipsService {
     constructor(
         private readonly restaurantMembershipsRepository: RestaurantMembershipsRepository,
+        private readonly usersService: UsersService,
     ) { }
 
     async createOwnerMembership(
@@ -53,6 +55,52 @@ export class RestaurantMembershipsService {
         return this.restaurantMembershipsRepository.deleteByUserIdAndRestaurantId(
             params,
         );
+    }
+
+    async inviteMember(params: {
+        inviterUserId: string;
+        targetUserEmail: string;
+        restaurantId: string;
+        role: RestaurantRole;
+    }): Promise<RestaurantMembership> {
+        const targetUser = await this.usersService.findByEmail(
+            params.targetUserEmail,
+        );
+
+        if (!targetUser) {
+            throw new NotFoundException('User not found');
+        }
+
+        if (params.inviterUserId === targetUser.id) {
+            throw new ConflictException('You cannot invite yourself');
+        }
+
+        if (params.role === RestaurantRole.OWNER) {
+            throw new ConflictException('Invitations cannot assign the owner role');
+        }
+
+        const existingMembership =
+            await this.restaurantMembershipsRepository.findByUserIdAndRestaurantId(
+                {
+                    userId: targetUser.id,
+                    restaurantId: params.restaurantId,
+                },
+            );
+
+        if (existingMembership?.status === MembershipStatus.ACTIVE) {
+            throw new ConflictException('User is already an active restaurant member');
+        }
+
+        if (existingMembership?.status === MembershipStatus.INVITED) {
+            throw new ConflictException('User already has a pending restaurant invitation');
+        }
+
+        return this.restaurantMembershipsRepository.invite({
+            userId: targetUser.id,
+            restaurantId: params.restaurantId,
+            role: params.role,
+            invitedByUserId: params.inviterUserId,
+        });
     }
 
     async getRestaurantMembers(params: {

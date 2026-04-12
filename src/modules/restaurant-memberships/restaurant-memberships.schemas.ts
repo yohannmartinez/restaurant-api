@@ -5,6 +5,12 @@ export const restaurantInvitationActionSchema = z.object({
     restaurantId: z.string().trim().min(1),
 });
 
+export const inviteRestaurantMemberSchema = z.object({
+    restaurantId: z.string().trim().min(1),
+    email: z.string().trim().email(),
+    role: z.nativeEnum(RestaurantRole).default(RestaurantRole.EDITOR),
+});
+
 export const updateRestaurantMemberRoleSchema = z.object({
     restaurantId: z.string().trim().min(1),
     userId: z.string().trim().min(1),

@@ -14,6 +14,7 @@ import { RestaurantMembershipGuard } from './guards/restaurant-membership.guard'
 import { RestaurantMembershipsService } from './restaurant-memberships.service';
 import {
     restaurantInvitationActionSchema,
+    inviteRestaurantMemberSchema,
     revokeRestaurantMemberSchema,
     restoreRestaurantMemberSchema,
     updateRestaurantMemberRoleSchema,
@@ -23,6 +24,8 @@ import {
     type AcceptRestaurantInvitationResult,
     type DeclineRestaurantInvitationInput,
     type DeclineRestaurantInvitationResult,
+    type InviteRestaurantMemberInput,
+    type InviteRestaurantMemberResult,
     type RevokeRestaurantMemberInput,
     type RevokeRestaurantMemberResult,
     type RestoreRestaurantMemberInput,
@@ -65,9 +68,26 @@ export class RestaurantMembershipsController {
         });
     }
 
-    @Post('update-role')
-    @UseGuards(JwtAuthGuard, RestaurantMembershipGuard)
+    @Post('invite')
     @RequireRestaurantRole(RestaurantRole.OWNER)
+    @UseGuards(JwtAuthGuard, RestaurantMembershipGuard)
+    async inviteMember(
+        @CurrentUserId(new ZodValidationPipe(authUserIdSchema))
+        userId: string,
+        @Body(new ZodValidationPipe(inviteRestaurantMemberSchema))
+        body: InviteRestaurantMemberInput,
+    ): Promise<InviteRestaurantMemberResult> {
+        return this.restaurantMembershipsService.inviteMember({
+            inviterUserId: userId,
+            targetUserEmail: body.email,
+            restaurantId: body.restaurantId,
+            role: body.role,
+        });
+    }
+
+    @Post('update-role')
+    @RequireRestaurantRole(RestaurantRole.OWNER)
+    @UseGuards(JwtAuthGuard, RestaurantMembershipGuard)
     async updateRole(
         @Body(new ZodValidationPipe(updateRestaurantMemberRoleSchema))
         body: UpdateRestaurantMemberRoleInput,
@@ -80,8 +100,8 @@ export class RestaurantMembershipsController {
     }
 
     @Post('revoke-member')
-    @UseGuards(JwtAuthGuard, RestaurantMembershipGuard)
     @RequireRestaurantRole(RestaurantRole.OWNER)
+    @UseGuards(JwtAuthGuard, RestaurantMembershipGuard)
     async revokeMember(
         @Body(new ZodValidationPipe(revokeRestaurantMemberSchema))
         body: RevokeRestaurantMemberInput,
@@ -93,8 +113,8 @@ export class RestaurantMembershipsController {
     }
 
     @Post('restore-member')
-    @UseGuards(JwtAuthGuard, RestaurantMembershipGuard)
     @RequireRestaurantRole(RestaurantRole.OWNER)
+    @UseGuards(JwtAuthGuard, RestaurantMembershipGuard)
     async restoreMember(
         @Body(new ZodValidationPipe(restoreRestaurantMemberSchema))
         body: RestoreRestaurantMemberInput,

@@ -81,6 +81,37 @@ export class RestaurantMembershipsRepository {
         });
     }
 
+    async invite(
+        params: {
+            userId: string;
+            restaurantId: string;
+            role: RestaurantRole;
+            invitedByUserId: string;
+        },
+        client: PrismaClientOrTransaction = this.prisma,
+    ): Promise<RestaurantMembership> {
+        return client.restaurantMembership.upsert({
+            where: {
+                userId_restaurantId: {
+                    userId: params.userId,
+                    restaurantId: params.restaurantId,
+                },
+            },
+            create: {
+                userId: params.userId,
+                restaurantId: params.restaurantId,
+                role: params.role,
+                status: MembershipStatus.INVITED,
+                invitedByUserId: params.invitedByUserId,
+            },
+            update: {
+                role: params.role,
+                status: MembershipStatus.INVITED,
+                invitedByUserId: params.invitedByUserId,
+            },
+        });
+    }
+
     async deleteByUserIdAndRestaurantId(
         params: {
             userId: string;
