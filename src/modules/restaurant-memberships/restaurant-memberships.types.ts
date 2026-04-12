@@ -16,6 +16,28 @@ export type DeclineRestaurantInvitationInput = RestaurantInvitationActionInput;
 
 export type DeclineRestaurantInvitationResult = RestaurantMembership;
 
+export type UpdateRestaurantMemberRoleInput = {
+    restaurantId: string;
+    userId: string;
+    role: RestaurantRole;
+};
+
+export type UpdateRestaurantMemberRoleResult = RestaurantMembership;
+
+export type RevokeRestaurantMemberInput = {
+    restaurantId: string;
+    userId: string;
+};
+
+export type RevokeRestaurantMemberResult = RestaurantMembership;
+
+export type RestoreRestaurantMemberInput = {
+    restaurantId: string;
+    userId: string;
+};
+
+export type RestoreRestaurantMemberResult = RestaurantMembership;
+
 export type RestaurantMemberProfile = {
     userId: string;
     email: string;

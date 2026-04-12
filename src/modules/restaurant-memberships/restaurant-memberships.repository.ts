@@ -3,6 +3,7 @@ import {
     MembershipStatus,
     Prisma,
     RestaurantMembership,
+    RestaurantRole,
     User,
 } from 'src/common/prisma/generated/client';
 import { type PrismaClientOrTransaction } from 'src/common/prisma/prisma.types';
@@ -55,6 +56,27 @@ export class RestaurantMembershipsRepository {
             },
             data: {
                 status: params.status,
+            },
+        });
+    }
+
+    async updateRole(
+        params: {
+            userId: string;
+            restaurantId: string;
+            role: RestaurantRole;
+        },
+        client: PrismaClientOrTransaction = this.prisma,
+    ): Promise<RestaurantMembership> {
+        return client.restaurantMembership.update({
+            where: {
+                userId_restaurantId: {
+                    userId: params.userId,
+                    restaurantId: params.restaurantId,
+                },
+            },
+            data: {
+                role: params.role,
             },
         });
     }

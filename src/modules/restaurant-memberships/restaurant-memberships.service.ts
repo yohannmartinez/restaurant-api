@@ -64,17 +64,10 @@ export class RestaurantMembershipsService {
         currentUserId: string;
         restaurantId: string;
     }): Promise<RestaurantMemberProfile[]> {
-        const currentUserMembership =
-            await this.restaurantMembershipsRepository.findByUserIdAndRestaurantId(
-                {
-                    userId: params.currentUserId,
-                    restaurantId: params.restaurantId,
-                },
-            );
-
-        if (!currentUserMembership) {
-            throw new ForbiddenException('Access denied');
-        }
+        await this.ensureUserBelongsToRestaurant({
+            userId: params.currentUserId,
+            restaurantId: params.restaurantId,
+        });
 
         const memberships =
             await this.restaurantMembershipsRepository.findManyMembersByRestaurantId(
@@ -91,6 +84,137 @@ export class RestaurantMembershipsService {
             status: membership.status,
             createdAt: membership.createdAt,
         }));
+    }
+
+    async updateMemberRole(params: {
+        currentUserId: string;
+        restaurantId: string;
+        targetUserId: string;
+        role: RestaurantRole;
+    }): Promise<RestaurantMembership> {
+        const currentUserMembership = await this.ensureUserBelongsToRestaurant({
+            userId: params.currentUserId,
+            restaurantId: params.restaurantId,
+        });
+
+        if (currentUserMembership.role !== RestaurantRole.OWNER) {
+            throw new ForbiddenException(
+                'Only restaurant owners can update member roles',
+            );
+        }
+
+        const targetMembership = await this.restaurantMembershipsRepository.findByUserIdAndRestaurantId(
+            {
+                userId: params.targetUserId,
+                restaurantId: params.restaurantId,
+            },
+        );
+
+        if (!targetMembership) {
+            throw new NotFoundException('Restaurant membership not found');
+        }
+
+        return this.restaurantMembershipsRepository.updateRole({
+            userId: params.targetUserId,
+            restaurantId: params.restaurantId,
+            role: params.role,
+        });
+    }
+
+    async revokeMember(params: {
+        currentUserId: string;
+        restaurantId: string;
+        targetUserId: string;
+    }): Promise<RestaurantMembership> {
+        const currentUserMembership = await this.ensureUserBelongsToRestaurant({
+            userId: params.currentUserId,
+            restaurantId: params.restaurantId,
+        });
+
+        if (currentUserMembership.role !== RestaurantRole.OWNER) {
+            throw new ForbiddenException(
+                'Only restaurant owners can revoke members',
+            );
+        }
+
+        const targetMembership =
+            await this.restaurantMembershipsRepository.findByUserIdAndRestaurantId(
+                {
+                    userId: params.targetUserId,
+                    restaurantId: params.restaurantId,
+                },
+            );
+
+        if (!targetMembership) {
+            throw new NotFoundException('Restaurant membership not found');
+        }
+
+        if (targetMembership.status === MembershipStatus.REVOKED) {
+            throw new ConflictException('Restaurant membership is already revoked');
+        }
+
+        return this.restaurantMembershipsRepository.updateStatus({
+            userId: params.targetUserId,
+            restaurantId: params.restaurantId,
+            status: MembershipStatus.REVOKED,
+        });
+    }
+
+    async restoreMember(params: {
+        currentUserId: string;
+        restaurantId: string;
+        targetUserId: string;
+    }): Promise<RestaurantMembership> {
+        const currentUserMembership = await this.ensureUserBelongsToRestaurant({
+            userId: params.currentUserId,
+            restaurantId: params.restaurantId,
+        });
+
+        if (currentUserMembership.role !== RestaurantRole.OWNER) {
+            throw new ForbiddenException(
+                'Only restaurant owners can restore members',
+            );
+        }
+
+        const targetMembership =
+            await this.restaurantMembershipsRepository.findByUserIdAndRestaurantId(
+                {
+                    userId: params.targetUserId,
+                    restaurantId: params.restaurantId,
+                },
+            );
+
+        if (!targetMembership) {
+            throw new NotFoundException('Restaurant membership not found');
+        }
+
+        if (targetMembership.status !== MembershipStatus.REVOKED) {
+            throw new ConflictException(
+                `Restaurant membership cannot be restored`,
+            );
+        }
+
+        return this.restaurantMembershipsRepository.updateStatus({
+            userId: params.targetUserId,
+            restaurantId: params.restaurantId,
+            status: MembershipStatus.ACTIVE,
+        });
+    }
+
+    private async ensureUserBelongsToRestaurant(params: {
+        userId: string;
+        restaurantId: string;
+    }): Promise<RestaurantMembership> {
+        const membership =
+            await this.restaurantMembershipsRepository.findByUserIdAndRestaurantId(
+                params,
+            );
+
+        if (!membership) {
+            throw new ForbiddenException('Access denied');
+        }
+
+        return membership;
     }
 
     private async ensureInvitedMembership(
