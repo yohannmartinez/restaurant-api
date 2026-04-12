@@ -2,6 +2,7 @@ import {
     Restaurant,
     RestaurantMembership,
 } from 'src/common/prisma/generated/client';
+import { type RestaurantMemberProfile } from '../restaurant-memberships/restaurant-memberships.types';
 
 export type CreateRestaurantInput = {
     name: string;
@@ -18,3 +19,5 @@ export type GetUserRestaurantsResult = Array<
         memberships: RestaurantMembership[];
     }
 >;
+
+export type GetRestaurantMembersResult = RestaurantMemberProfile[];

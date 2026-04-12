@@ -3,6 +3,7 @@ import {
     MembershipStatus,
     Prisma,
     RestaurantMembership,
+    User,
 } from 'src/common/prisma/generated/client';
 import { type PrismaClientOrTransaction } from 'src/common/prisma/prisma.types';
 import { PrismaService } from 'src/common/prisma/prisma.service';
@@ -71,6 +72,37 @@ export class RestaurantMembershipsRepository {
                     userId: params.userId,
                     restaurantId: params.restaurantId,
                 },
+            },
+        });
+    }
+
+    async findManyMembersByRestaurantId(
+        restaurantId: string,
+        client: PrismaClientOrTransaction = this.prisma,
+    ): Promise<
+        Array<
+            RestaurantMembership & {
+                user: Pick<User, 'id' | 'email' | 'firstName' | 'lastName' | 'picture'>;
+            }
+        >
+    > {
+        return client.restaurantMembership.findMany({
+            where: {
+                restaurantId,
+            },
+            include: {
+                user: {
+                    select: {
+                        id: true,
+                        email: true,
+                        firstName: true,
+                        lastName: true,
+                        picture: true,
+                    },
+                },
+            },
+            orderBy: {
+                createdAt: 'asc',
             },
         });
     }

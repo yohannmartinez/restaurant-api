@@ -4,6 +4,7 @@ import { RestaurantMembershipsService } from '../restaurant-memberships/restaura
 import {
     type CreateRestaurantInput,
     type CreateRestaurantResult,
+    type GetRestaurantMembersResult,
     type GetUserRestaurantsResult,
 } from './restaurants.types';
 import { RestaurantsRepository } from './restaurants.repository';
@@ -54,6 +55,16 @@ export class RestaurantsService {
 
     async getUserRestaurants(userId: string): Promise<GetUserRestaurantsResult> {
         return this.restaurantsRepository.findManyByUserId(userId);
+    }
+
+    async getRestaurantMembers(
+        userId: string,
+        restaurantId: string,
+    ): Promise<GetRestaurantMembersResult> {
+        return this.restaurantMembershipsService.getRestaurantMembers({
+            currentUserId: userId,
+            restaurantId,
+        });
     }
 
     private createSlug(value: string): string {

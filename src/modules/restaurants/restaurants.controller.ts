@@ -2,6 +2,7 @@ import {
     Body,
     Controller,
     Get,
+    Param,
     Post,
     UseGuards,
 } from '@nestjs/common';
@@ -9,10 +10,14 @@ import { ZodValidationPipe } from 'src/common/pipes/zod-validation.pipe';
 import { authUserIdSchema } from '../auth/auth.schemas';
 import { CurrentUserId } from '../auth/decorators/current-user-id.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { createRestaurantSchema } from './restaurants.schemas';
+import {
+    createRestaurantSchema,
+    restaurantIdParamSchema,
+} from './restaurants.schemas';
 import {
     type CreateRestaurantInput,
     type CreateRestaurantResult,
+    type GetRestaurantMembersResult,
     type GetUserRestaurantsResult,
 } from './restaurants.types';
 import { RestaurantsService } from './restaurants.service';
@@ -28,6 +33,17 @@ export class RestaurantsController {
         userId: string,
     ): Promise<GetUserRestaurantsResult> {
         return this.restaurantsService.getUserRestaurants(userId);
+    }
+
+    @Get(':restaurantId/members')
+    @UseGuards(JwtAuthGuard)
+    async getRestaurantMembers(
+        @CurrentUserId(new ZodValidationPipe(authUserIdSchema))
+        userId: string,
+        @Param('restaurantId', new ZodValidationPipe(restaurantIdParamSchema))
+        restaurantId: string,
+    ): Promise<GetRestaurantMembersResult> {
+        return this.restaurantsService.getRestaurantMembers(userId, restaurantId);
     }
 
     @Post('create')

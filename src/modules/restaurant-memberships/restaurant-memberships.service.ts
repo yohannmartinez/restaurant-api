@@ -1,5 +1,6 @@
 import {
     ConflictException,
+    ForbiddenException,
     Injectable,
     NotFoundException,
 } from '@nestjs/common';
@@ -10,6 +11,7 @@ import {
 } from 'src/common/prisma/generated/client';
 import { type PrismaClientOrTransaction } from 'src/common/prisma/prisma.types';
 import { RestaurantMembershipsRepository } from './restaurant-memberships.repository';
+import { type RestaurantMemberProfile } from './restaurant-memberships.types';
 
 @Injectable()
 export class RestaurantMembershipsService {
@@ -56,6 +58,39 @@ export class RestaurantMembershipsService {
         return this.restaurantMembershipsRepository.deleteByUserIdAndRestaurantId(
             params,
         );
+    }
+
+    async getRestaurantMembers(params: {
+        currentUserId: string;
+        restaurantId: string;
+    }): Promise<RestaurantMemberProfile[]> {
+        const currentUserMembership =
+            await this.restaurantMembershipsRepository.findByUserIdAndRestaurantId(
+                {
+                    userId: params.currentUserId,
+                    restaurantId: params.restaurantId,
+                },
+            );
+
+        if (!currentUserMembership) {
+            throw new ForbiddenException('Access denied');
+        }
+
+        const memberships =
+            await this.restaurantMembershipsRepository.findManyMembersByRestaurantId(
+                params.restaurantId,
+            );
+
+        return memberships.map((membership) => ({
+            userId: membership.user.id,
+            email: membership.user.email,
+            firstName: membership.user.firstName,
+            lastName: membership.user.lastName,
+            picture: membership.user.picture,
+            role: membership.role,
+            status: membership.status,
+            createdAt: membership.createdAt,
+        }));
     }
 
     private async ensureInvitedMembership(
