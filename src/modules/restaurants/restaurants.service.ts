@@ -58,11 +58,9 @@ export class RestaurantsService {
     }
 
     async getRestaurantMembers(
-        userId: string,
         restaurantId: string,
     ): Promise<GetRestaurantMembersResult> {
         return this.restaurantMembershipsService.getRestaurantMembers({
-            currentUserId: userId,
             restaurantId,
         });
     }

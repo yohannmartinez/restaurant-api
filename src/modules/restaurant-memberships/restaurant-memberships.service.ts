@@ -1,9 +1,4 @@
-import {
-    ConflictException,
-    ForbiddenException,
-    Injectable,
-    NotFoundException,
-} from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import {
     MembershipStatus,
     RestaurantMembership,
@@ -61,14 +56,8 @@ export class RestaurantMembershipsService {
     }
 
     async getRestaurantMembers(params: {
-        currentUserId: string;
         restaurantId: string;
     }): Promise<RestaurantMemberProfile[]> {
-        await this.ensureUserBelongsToRestaurant({
-            userId: params.currentUserId,
-            restaurantId: params.restaurantId,
-        });
-
         const memberships =
             await this.restaurantMembershipsRepository.findManyMembersByRestaurantId(
                 params.restaurantId,
@@ -87,22 +76,10 @@ export class RestaurantMembershipsService {
     }
 
     async updateMemberRole(params: {
-        currentUserId: string;
         restaurantId: string;
         targetUserId: string;
         role: RestaurantRole;
     }): Promise<RestaurantMembership> {
-        const currentUserMembership = await this.ensureUserBelongsToRestaurant({
-            userId: params.currentUserId,
-            restaurantId: params.restaurantId,
-        });
-
-        if (currentUserMembership.role !== RestaurantRole.OWNER) {
-            throw new ForbiddenException(
-                'Only restaurant owners can update member roles',
-            );
-        }
-
         const targetMembership = await this.restaurantMembershipsRepository.findByUserIdAndRestaurantId(
             {
                 userId: params.targetUserId,
@@ -122,21 +99,9 @@ export class RestaurantMembershipsService {
     }
 
     async revokeMember(params: {
-        currentUserId: string;
         restaurantId: string;
         targetUserId: string;
     }): Promise<RestaurantMembership> {
-        const currentUserMembership = await this.ensureUserBelongsToRestaurant({
-            userId: params.currentUserId,
-            restaurantId: params.restaurantId,
-        });
-
-        if (currentUserMembership.role !== RestaurantRole.OWNER) {
-            throw new ForbiddenException(
-                'Only restaurant owners can revoke members',
-            );
-        }
-
         const targetMembership =
             await this.restaurantMembershipsRepository.findByUserIdAndRestaurantId(
                 {
@@ -161,21 +126,9 @@ export class RestaurantMembershipsService {
     }
 
     async restoreMember(params: {
-        currentUserId: string;
         restaurantId: string;
         targetUserId: string;
     }): Promise<RestaurantMembership> {
-        const currentUserMembership = await this.ensureUserBelongsToRestaurant({
-            userId: params.currentUserId,
-            restaurantId: params.restaurantId,
-        });
-
-        if (currentUserMembership.role !== RestaurantRole.OWNER) {
-            throw new ForbiddenException(
-                'Only restaurant owners can restore members',
-            );
-        }
-
         const targetMembership =
             await this.restaurantMembershipsRepository.findByUserIdAndRestaurantId(
                 {
@@ -199,22 +152,6 @@ export class RestaurantMembershipsService {
             restaurantId: params.restaurantId,
             status: MembershipStatus.ACTIVE,
         });
-    }
-
-    private async ensureUserBelongsToRestaurant(params: {
-        userId: string;
-        restaurantId: string;
-    }): Promise<RestaurantMembership> {
-        const membership =
-            await this.restaurantMembershipsRepository.findByUserIdAndRestaurantId(
-                params,
-            );
-
-        if (!membership) {
-            throw new ForbiddenException('Access denied');
-        }
-
-        return membership;
     }
 
     private async ensureInvitedMembership(

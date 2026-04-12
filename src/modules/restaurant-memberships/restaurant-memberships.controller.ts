@@ -4,10 +4,13 @@ import {
     Post,
     UseGuards,
 } from '@nestjs/common';
+import { RestaurantRole } from 'src/common/prisma/generated/client';
 import { ZodValidationPipe } from 'src/common/pipes/zod-validation.pipe';
 import { authUserIdSchema } from '../auth/auth.schemas';
 import { CurrentUserId } from '../auth/decorators/current-user-id.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RequireRestaurantRole } from './decorators/require-restaurant-role.decorator';
+import { RestaurantMembershipGuard } from './guards/restaurant-membership.guard';
 import { RestaurantMembershipsService } from './restaurant-memberships.service';
 import {
     restaurantInvitationActionSchema,
@@ -63,15 +66,13 @@ export class RestaurantMembershipsController {
     }
 
     @Post('update-role')
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(JwtAuthGuard, RestaurantMembershipGuard)
+    @RequireRestaurantRole(RestaurantRole.OWNER)
     async updateRole(
-        @CurrentUserId(new ZodValidationPipe(authUserIdSchema))
-        userId: string,
         @Body(new ZodValidationPipe(updateRestaurantMemberRoleSchema))
         body: UpdateRestaurantMemberRoleInput,
     ): Promise<UpdateRestaurantMemberRoleResult> {
         return this.restaurantMembershipsService.updateMemberRole({
-            currentUserId: userId,
             restaurantId: body.restaurantId,
             targetUserId: body.userId,
             role: body.role,
@@ -79,30 +80,26 @@ export class RestaurantMembershipsController {
     }
 
     @Post('revoke-member')
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(JwtAuthGuard, RestaurantMembershipGuard)
+    @RequireRestaurantRole(RestaurantRole.OWNER)
     async revokeMember(
-        @CurrentUserId(new ZodValidationPipe(authUserIdSchema))
-        userId: string,
         @Body(new ZodValidationPipe(revokeRestaurantMemberSchema))
         body: RevokeRestaurantMemberInput,
     ): Promise<RevokeRestaurantMemberResult> {
         return this.restaurantMembershipsService.revokeMember({
-            currentUserId: userId,
             restaurantId: body.restaurantId,
             targetUserId: body.userId,
         });
     }
 
     @Post('restore-member')
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(JwtAuthGuard, RestaurantMembershipGuard)
+    @RequireRestaurantRole(RestaurantRole.OWNER)
     async restoreMember(
-        @CurrentUserId(new ZodValidationPipe(authUserIdSchema))
-        userId: string,
         @Body(new ZodValidationPipe(restoreRestaurantMemberSchema))
         body: RestoreRestaurantMemberInput,
     ): Promise<RestoreRestaurantMemberResult> {
         return this.restaurantMembershipsService.restoreMember({
-            currentUserId: userId,
             restaurantId: body.restaurantId,
             targetUserId: body.userId,
         });

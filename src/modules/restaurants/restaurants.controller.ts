@@ -10,6 +10,7 @@ import { ZodValidationPipe } from 'src/common/pipes/zod-validation.pipe';
 import { authUserIdSchema } from '../auth/auth.schemas';
 import { CurrentUserId } from '../auth/decorators/current-user-id.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RestaurantMembershipGuard } from '../restaurant-memberships/guards/restaurant-membership.guard';
 import {
     createRestaurantSchema,
     restaurantIdParamSchema,
@@ -36,14 +37,12 @@ export class RestaurantsController {
     }
 
     @Get(':restaurantId/members')
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(JwtAuthGuard, RestaurantMembershipGuard)
     async getRestaurantMembers(
-        @CurrentUserId(new ZodValidationPipe(authUserIdSchema))
-        userId: string,
         @Param('restaurantId', new ZodValidationPipe(restaurantIdParamSchema))
         restaurantId: string,
     ): Promise<GetRestaurantMembersResult> {
-        return this.restaurantsService.getRestaurantMembers(userId, restaurantId);
+        return this.restaurantsService.getRestaurantMembers(restaurantId);
     }
 
     @Post('create')
